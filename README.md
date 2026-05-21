@@ -1,4 +1,4 @@
-# pelatihan_7_mei
+# Aplikasi Katalog Buku dan Reading Tracker
 
 A new Flutter project.
 

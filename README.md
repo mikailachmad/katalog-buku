@@ -24,7 +24,7 @@ Proyek ini merupakan aplikasi manajemen koleksi buku pribadi, pelacakan progres 
 
 ---
 
-## 📂 Struktur Direktori Proyek (Monorepo)
+## Struktur Direktori Proyek (Monorepo)
 
 Untuk menjaga modularitas, repositori ini menggunakan arsitektur monorepo yang memisahkan kode aplikasi mobile dengan server backend:
 

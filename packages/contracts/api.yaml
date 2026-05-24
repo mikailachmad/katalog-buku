@@ -1,0 +1,111 @@
+openapi: 3.1.0
+info:
+  title: Catalog and Progress Tracker Book API
+  version: 1.0.0
+components:
+  securitySchemes:
+    BearerAuth:          
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+  schemas:
+  BookObject:
+    type: object
+    properties:
+      id:
+        type: int
+      updated_at:
+        type: string
+        format: date-time
+        example: "2026-05-24T10:35:00Z"
+      title: 
+        type: string
+      author:
+        type: string
+      publisher:
+        type: string
+      genre:
+        type: string
+      page_max:
+        type: int
+      page_current:
+        type: int
+      description:
+        type: string
+      review:
+        type: string
+      rating:
+        type: int
+      progress:
+        type: string
+      isbn:
+        type: string
+
+path:
+  /books:
+    get:
+      summary: Get user's books.
+      security: 
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Success to get user's book
+          content:
+            application/json:
+              schema: 
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookObject'
+    post:
+      summary: Store list of books of user to database
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/BookObject'
+      responses:
+        "200":
+          description: "Success to save user's books"
+          schema:
+            type: string
+    
+    delete:
+      summary: Delete user's books
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: int
+      responses:
+        "200":
+          description: Success
+    
+    put:
+      summary: Edit user's books
+      security:
+        - BearerAuth:[]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/BookObject'
+      responses:
+        "200":
+          description: "Success to edit user's books"
+          schema:
+            type: string
+
+                  

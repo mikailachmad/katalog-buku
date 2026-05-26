@@ -118,7 +118,7 @@ path:
           description: "Success to edit user's books"
           schema:
             type: string
-  /register:
+  /user/register:
     post:
       summary: Register new user
       requestBody:
@@ -147,7 +147,7 @@ path:
                 $ref: '#/components/schemas/UserResponse'
         '400':
           description: username not available
-  /login:
+  /user/login:
     post:
       summary: Login to get new JWT
       requestBody:

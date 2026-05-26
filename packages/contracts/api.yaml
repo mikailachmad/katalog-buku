@@ -2,6 +2,9 @@ openapi: 3.1.0
 info:
   title: Catalog and Progress Tracker Book API
   version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local Backend API
 components:
   securitySchemes:
     BearerAuth:          
@@ -13,11 +16,11 @@ components:
       type: object
       properties:
         id:
-          type: int
+          type: integer
         updated_at:
           type: string
           format: date-time
-          example: "2026-05-24T10:35:00Z"
+          examples: ["2026-05-24T10:35:00Z"]
         title: 
           type: string
         author:
@@ -25,15 +28,15 @@ components:
         genre:
           type: string
         page_max:
-          type: int
+          type: integer
         page_current:
-          type: int
+          type: integer
         description:
           type: string
         note:
           type: string
         rating:
-          type: int
+          type: integer
         progress:
           type: string
         isbn:
@@ -43,23 +46,23 @@ components:
       properties:
         id:
           type: integer
-          example: 125
+          examples: [125]
         username:
           type: string
-          example: "budi_sanjaya"
+          examples: ["budi_sanjaya"]
         created_at:
           type: string
           format: date-time
-          example: "2026-05-24T11:03:00Z"
+          examples: ["2026-05-24T11:03:00Z"]
 
-path:
+paths:
   /books:
     get:
       summary: Get user's books.
       security: 
-        - BearerAuth: []
+        BearerAuth:[]
       responses:
-        "200":
+        '200':
           description: Success to get user's book
           content:
             application/json:
@@ -70,7 +73,7 @@ path:
     post:
       summary: Store list of books of user to database
       security:
-        - BearerAuth: []
+        BearerAuth: []
       requestBody:
         required: true
         content:
@@ -80,10 +83,12 @@ path:
               items:
                 $ref: '#/components/schemas/BookObject'
       responses:
-        "200":
+        '200':
           description: "Success to save user's books"
-          schema:
-            type: string
+          content:
+            application/json:
+              schema:
+                type: string
     
     delete:
       summary: Delete user's books
@@ -96,15 +101,15 @@ path:
             schema:
               type: array
               items:
-                type: int
+                type: integer
       responses:
-        "200":
+        '200':
           description: Success
     
     put:
       summary: Edit user's books
       security:
-        - BearerAuth:[]
+        BearerAuth:[]
       requestBody:
         required: true
         content:
@@ -114,7 +119,7 @@ path:
               items:
                 $ref: '#/components/schemas/BookObject'
       responses:
-        "200":
+        '200':
           description: "Success to edit user's books"
           schema:
             type: string
@@ -133,11 +138,11 @@ path:
               properties:
                 username:
                   type: string
-                  example: "budi_sanjaya"
+                  examples: ["budi_sanjaya"]
                 password:
                   type: string
                   format: password
-                  example: "Rahasia123!"
+                  examples: ["Rahasia123!"]
       responses:
         '201':
           description: Success to register user
@@ -162,11 +167,11 @@ path:
               properties:
                 username:
                   type: string
-                  example: "budi_sanjaya"
+                  examples: ["budi_sanjaya"]
                 password:
                   type: string
                   format: password
-                  example: "SuperDuperSecret123!"
+                  examples: ["SuperDuperSecret123!"]
       responses:
         '200':
           description: Success to get JWT Token
@@ -177,14 +182,14 @@ path:
                 properties:
                   token_type:
                     type: string
-                    example: "Bearer"
+                    examples: ["Bearer"]
                   access_token:
                     type: string
-                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    examples: ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."]
                   expires_in:
                     type: integer
                     description: Epoch Time
-                    example: 3600
+                    examples: [3600]
         '401':
           description: Wrong username or password
                   

@@ -58,9 +58,9 @@ components:
 paths:
   /books:
     get:
-      summary: Get user's books.
+      summary: get user's books.
       security: 
-        BearerAuth:[]
+        - BearerAuth: []
       responses:
         '200':
           description: Success to get user's book
@@ -73,7 +73,7 @@ paths:
     post:
       summary: Store list of books of user to database
       security:
-        BearerAuth: []
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -85,13 +85,24 @@ paths:
       responses:
         '200':
           description: "Success to save user's books"
-          content:
-            application/json:
-              schema:
-                type: string
-    
-    delete:
-      summary: Delete user's books
+    put:
+      summary: Edit user's books
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/BookObject'
+      responses:
+        '200':
+          description: "Success to edit user's books"
+  /books/delete:
+    post:
+      summary: delete user's books
       security:
         - BearerAuth: []
       requestBody:
@@ -105,24 +116,6 @@ paths:
       responses:
         '200':
           description: Success
-    
-    put:
-      summary: Edit user's books
-      security:
-        BearerAuth:[]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/BookObject'
-      responses:
-        '200':
-          description: "Success to edit user's books"
-          schema:
-            type: string
   /user/register:
     post:
       summary: Register new user

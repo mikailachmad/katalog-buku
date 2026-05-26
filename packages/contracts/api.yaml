@@ -30,7 +30,7 @@ components:
           type: int
         description:
           type: string
-        review:
+        note:
           type: string
         rating:
           type: int

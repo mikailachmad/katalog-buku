@@ -22,8 +22,6 @@ components:
           type: string
         author:
           type: string
-        publisher:
-          type: string
         genre:
           type: string
         page_max:

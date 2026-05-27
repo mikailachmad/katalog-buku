@@ -12,6 +12,11 @@ components:
       scheme: bearer
       bearerFormat: JWT 
   schemas:
+    ErrorObject:
+      type: object
+      properties:
+        error:
+          type: string
     BookObject:
       type: object
       properties:
@@ -72,6 +77,12 @@ paths:
                   $ref: '#/components/schemas/BookObject'
         '401': 
           description: Authorization failed
+          content:
+            application/json:
+              schema: 
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorObject'
     post:
       summary: Store list of books of user to database
       security:
@@ -89,6 +100,12 @@ paths:
           description: "Success to save user's books"
         '401': 
           description: Authorization failed
+          content:
+            application/json:
+              schema: 
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorObject'
     put:
       summary: Edit user's books
       security:
@@ -106,6 +123,12 @@ paths:
           description: "Success to edit user's books"
         '401': 
           description: Authorization failed
+          content:
+            application/json:
+              schema: 
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorObject'
   /books/delete:
     post:
       summary: delete user's books
@@ -124,6 +147,12 @@ paths:
           description: Success
         '401': 
           description: Authorization failed
+          content:
+            application/json:
+              schema: 
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorObject'
   /user/register:
     post:
       summary: Register new user
@@ -153,8 +182,20 @@ paths:
                 $ref: '#/components/schemas/UserResponse'
         '400':
           description: username not available
+          content:
+            application/json:
+              schema: 
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorObject'
         '500':
           description: internal server error
+          content:
+            application/json:
+              schema: 
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorObject'
   /user/login:
     post:
       summary: Login to get new JWT
@@ -188,5 +229,17 @@ paths:
                     examples: ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."]
         '401':
           description: Wrong username or password
+          content:
+            application/json:
+              schema: 
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorObject'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema: 
+                type: object
+                items:
+                  $ref: '#/components/schemas/ErrorObject'

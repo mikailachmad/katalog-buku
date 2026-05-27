@@ -70,6 +70,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/BookObject'
+        '401': 
+          description: Authorization failed
     post:
       summary: Store list of books of user to database
       security:
@@ -85,6 +87,8 @@ paths:
       responses:
         '200':
           description: "Success to save user's books"
+        '401': 
+          description: Authorization failed
     put:
       summary: Edit user's books
       security:
@@ -100,6 +104,8 @@ paths:
       responses:
         '200':
           description: "Success to edit user's books"
+        '401': 
+          description: Authorization failed
   /books/delete:
     post:
       summary: delete user's books
@@ -116,6 +122,8 @@ paths:
       responses:
         '200':
           description: Success
+        '401': 
+          description: Authorization failed
   /user/register:
     post:
       summary: Register new user

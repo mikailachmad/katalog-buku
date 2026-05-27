@@ -187,4 +187,5 @@ paths:
                     examples: [3600]
         '401':
           description: Wrong username or password
-                  
+        '500':
+          description: Internal Server Error

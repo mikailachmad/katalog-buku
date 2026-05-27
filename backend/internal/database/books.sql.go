@@ -129,6 +129,47 @@ func (q *Queries) GetBooks(ctx context.Context) ([]Book, error) {
 	return items, nil
 }
 
+const getBooksByUserID = `-- name: GetBooksByUserID :many
+SELECT id, user_id, updated_at, title, author, genre, page_max, page_current, description, note, rating, progress, isbn FROM books WHERE user_id = $1
+`
+
+func (q *Queries) GetBooksByUserID(ctx context.Context, userID uuid.UUID) ([]Book, error) {
+	rows, err := q.db.QueryContext(ctx, getBooksByUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Book
+	for rows.Next() {
+		var i Book
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.UpdatedAt,
+			&i.Title,
+			&i.Author,
+			&i.Genre,
+			&i.PageMax,
+			&i.PageCurrent,
+			&i.Description,
+			&i.Note,
+			&i.Rating,
+			&i.Progress,
+			&i.Isbn,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const insertBook = `-- name: InsertBook :one
 INSERT INTO books (id, user_id, updated_at, title, author, genre, page_max, page_current, description, note, rating, progress, ISBN)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)

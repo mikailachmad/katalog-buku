@@ -6,6 +6,9 @@ RETURNING *;
 -- name: GetBooks :many
 SELECT * FROM books;
 
+-- name: GetBooksByUserID :many
+SELECT * FROM books WHERE user_id = $1;
+
 -- name: DeleteBook :exec
 DELETE FROM books WHERE id = $1;
 

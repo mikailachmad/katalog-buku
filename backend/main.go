@@ -3,6 +3,7 @@ package main
 import (
 	"bookshelf/internal/database"
 	"bookshelf/internal/handler"
+	"bookshelf/internal/middleware"
 	"database/sql"
 	"fmt"
 	"log"
@@ -59,6 +60,13 @@ func main() {
 	v1Router.Get("/healthz", handler.Healthz)
 	v1Router.Post("/user/register", apiConfig.Register)
 	v1Router.Post("/user/login", apiConfig.Login)
+
+	// Router that need middleware authenticator
+	v1Router.Group(func(secureRouter chi.Router) {
+		secureRouter.Use(middleware.AuthMiddleware)
+		secureRouter.Get("/books", apiConfig.GetBooks)
+		secureRouter.Post("/books", apiConfig.AddBooks)
+	})
 
 	router.Mount("/api/v1", v1Router)
 

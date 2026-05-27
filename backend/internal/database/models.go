@@ -5,10 +5,27 @@
 package database
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+type Book struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	UpdatedAt   time.Time
+	Title       string
+	Author      sql.NullString
+	Genre       sql.NullString
+	PageMax     sql.NullInt32
+	PageCurrent sql.NullInt32
+	Description sql.NullString
+	Note        sql.NullString
+	Rating      sql.NullInt32
+	Progress    sql.NullString
+	Isbn        sql.NullString
+}
 
 type User struct {
 	ID        uuid.UUID

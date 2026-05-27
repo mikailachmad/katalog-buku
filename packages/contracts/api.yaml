@@ -175,16 +175,9 @@ paths:
               schema:
                 type: object
                 properties:
-                  token_type:
-                    type: string
-                    examples: ["Bearer"]
-                  access_token:
+                  token:
                     type: string
                     examples: ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."]
-                  expires_in:
-                    type: integer
-                    description: Epoch Time
-                    examples: [3600]
         '401':
           description: Wrong username or password
         '500':

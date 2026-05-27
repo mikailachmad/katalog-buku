@@ -14,10 +14,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type apiConfig struct {
-	DB *database.Queries
-}
-
 func main() {
 	fmt.Println("Hello World")
 
@@ -40,7 +36,7 @@ func main() {
 
 	dbQueries := database.New(db)
 
-	apiConfig := apiConfig{
+	apiConfig := handler.ApiConfig{
 		DB: dbQueries,
 	}
 
@@ -59,6 +55,7 @@ func main() {
 
 	v1Router := chi.NewRouter()
 	v1Router.Get("/healthz", handler.Healthz)
+	v1Router.Post("/user/register", apiConfig.Register)
 
 	router.Mount("/api/v1", v1Router)
 
@@ -68,7 +65,7 @@ func main() {
 	}
 
 	log.Printf("Server starting on PORT: %v", portString)
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
 	}

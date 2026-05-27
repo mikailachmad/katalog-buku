@@ -1,7 +1,9 @@
 package main
 
 import (
-	"bookshelf/apihandler"
+	"bookshelf/internal/database"
+	"bookshelf/internal/handler"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,6 +13,10 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 )
+
+type apiConfig struct {
+	DB *database.Queries
+}
 
 func main() {
 	fmt.Println("Hello World")
@@ -22,6 +28,22 @@ func main() {
 		log.Fatal("PORT is not found in the environment")
 	}
 
+	dbUrl := os.Getenv("DB_URL")
+	if dbUrl == "" {
+		log.Fatal("DB_URL environment variable is not set")
+	}
+
+	db, err := sql.Open("postgres", dbUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dbQueries := database.New(db)
+
+	apiConfig := apiConfig{
+		DB: dbQueries,
+	}
+
 	fmt.Println("PORT: ", portString)
 
 	router := chi.NewRouter()
@@ -29,14 +51,14 @@ func main() {
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"*"},
+		AllowedHeaders:   []string{"Authorization, Content-Type"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: false,
-		MaxAge:           300,
+		MaxAge:           3600,
 	}))
 
 	v1Router := chi.NewRouter()
-	v1Router.Get("/healthz", apihandler.HandlerHealthz)
+	v1Router.Get("/healthz", handler.Healthz)
 
 	router.Mount("/api/v1", v1Router)
 

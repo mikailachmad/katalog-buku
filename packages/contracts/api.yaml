@@ -145,6 +145,8 @@ paths:
                 $ref: '#/components/schemas/UserResponse'
         '400':
           description: username not available
+        '500':
+          description: internal server error
   /user/login:
     post:
       summary: Login to get new JWT

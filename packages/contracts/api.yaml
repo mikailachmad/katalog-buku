@@ -1,0 +1,184 @@
+openapi: 3.1.0
+info:
+  title: Catalog and Progress Tracker Book API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local Backend API
+components:
+  securitySchemes:
+    BearerAuth:          
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+  schemas:
+    BookObject:
+      type: object
+      properties:
+        id:
+          type: integer
+        updated_at:
+          type: string
+          format: date-time
+          examples: ["2026-05-24T10:35:00Z"]
+        title: 
+          type: string
+        author:
+          type: string
+        genre:
+          type: string
+        page_max:
+          type: integer
+        page_current:
+          type: integer
+        description:
+          type: string
+        note:
+          type: string
+        rating:
+          type: integer
+        progress:
+          type: string
+        isbn:
+          type: string
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          examples: [125]
+        username:
+          type: string
+          examples: ["budi_sanjaya"]
+        created_at:
+          type: string
+          format: date-time
+          examples: ["2026-05-24T11:03:00Z"]
+
+paths:
+  /books:
+    get:
+      summary: get user's books.
+      security: 
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Success to get user's book
+          content:
+            application/json:
+              schema: 
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookObject'
+    post:
+      summary: Store list of books of user to database
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/BookObject'
+      responses:
+        '200':
+          description: "Success to save user's books"
+    put:
+      summary: Edit user's books
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/BookObject'
+      responses:
+        '200':
+          description: "Success to edit user's books"
+  /books/delete:
+    post:
+      summary: delete user's books
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+      responses:
+        '200':
+          description: Success
+  /user/register:
+    post:
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  examples: ["budi_sanjaya"]
+                password:
+                  type: string
+                  format: password
+                  examples: ["Rahasia123!"]
+      responses:
+        '201':
+          description: Success to register user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: username not available
+        '500':
+          description: internal server error
+  /user/login:
+    post:
+      summary: Login to get new JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  examples: ["budi_sanjaya"]
+                password:
+                  type: string
+                  format: password
+                  examples: ["SuperDuperSecret123!"]
+      responses:
+        '200':
+          description: Success to get JWT Token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    examples: ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."]
+        '401':
+          description: Wrong username or password
+        '500':
+          description: Internal Server Error

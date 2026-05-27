@@ -2,7 +2,8 @@
 ## Environment Variable
 Ensure you have required environment vairable:
 - `PORT`
-- `DB_URL` <br>
+- `DB_URL` 
+- `JWT_KEY` <br>
 look at `.env_example`
 ## Database migration
 `cd /backend/sql/schema` <br>

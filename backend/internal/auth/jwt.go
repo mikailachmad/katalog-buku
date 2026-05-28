@@ -29,7 +29,7 @@ func GenerateJWT(username string) (string, error) {
 	return token.SignedString(jwtKey)
 }
 
-func validateToken(signedToken string) error {
+func ValidateToken(signedToken string) error {
 	jwtKey := []byte(os.Getenv("JWT_KEY"))
 	token, err := jwt.ParseWithClaims(
 		signedToken,
@@ -52,4 +52,26 @@ func validateToken(signedToken string) error {
 		return errors.New("Token expired")
 	}
 	return nil
+}
+
+func GetUsernameFromToken(signedToken string) (string, error) {
+	jwtKey := []byte(os.Getenv("JWT_KEY"))
+	token, err := jwt.ParseWithClaims(
+		signedToken,
+		&JWTClaim{},
+		func(t *jwt.Token) (interface{}, error) {
+			return []byte(jwtKey), nil
+		},
+	)
+
+	if err != nil {
+		return "", err
+	}
+
+	claims, ok := token.Claims.(*JWTClaim)
+	if !ok {
+		return "", errors.New("Couldn't parse claims")
+	}
+
+	return claims.Username, nil
 }

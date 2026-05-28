@@ -3,6 +3,7 @@ package main
 import (
 	"bookshelf/internal/database"
 	"bookshelf/internal/handler"
+	"bookshelf/internal/middleware"
 	"database/sql"
 	"fmt"
 	"log"
@@ -15,6 +16,8 @@ import (
 
 	_ "github.com/lib/pq"
 )
+
+var router *chi.Mux
 
 func main() {
 	fmt.Println("Hello World")
@@ -44,7 +47,7 @@ func main() {
 
 	fmt.Println("PORT: ", portString)
 
-	router := chi.NewRouter()
+	router = chi.NewRouter()
 
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
@@ -59,6 +62,16 @@ func main() {
 	v1Router.Get("/healthz", handler.Healthz)
 	v1Router.Post("/user/register", apiConfig.Register)
 	v1Router.Post("/user/login", apiConfig.Login)
+
+	// Router that need middleware authenticator
+	v1Router.Group(func(secureRouter chi.Router) {
+		secureRouter.Use(middleware.AuthMiddleware)
+		secureRouter.Get("/books", apiConfig.GetBooks)
+		secureRouter.Post("/books", apiConfig.AddBooks)
+		secureRouter.Put("/books", apiConfig.EditBooks)
+		secureRouter.Post("/books/delete", apiConfig.DeleteBooks)
+		secureRouter.Delete("/book/{bookId}", apiConfig.DeleteBook)
+	})
 
 	router.Mount("/api/v1", v1Router)
 

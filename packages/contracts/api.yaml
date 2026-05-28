@@ -81,7 +81,7 @@ paths:
             application/json:
               schema: 
                 type: object
-                items:
+                item:
                   $ref: '#/components/schemas/ErrorObject'
     post:
       summary: Store list of books of user to database
@@ -104,7 +104,7 @@ paths:
             application/json:
               schema: 
                 type: object
-                items:
+                item:
                   $ref: '#/components/schemas/ErrorObject'
     put:
       summary: Edit user's books
@@ -127,7 +127,7 @@ paths:
             application/json:
               schema: 
                 type: object
-                items:
+                item:
                   $ref: '#/components/schemas/ErrorObject'
   /books/delete:
     post:
@@ -151,7 +151,7 @@ paths:
             application/json:
               schema: 
                 type: object
-                items:
+                item:
                   $ref: '#/components/schemas/ErrorObject'
   /user/register:
     post:
@@ -186,7 +186,7 @@ paths:
             application/json:
               schema: 
                 type: object
-                items:
+                item:
                   $ref: '#/components/schemas/ErrorObject'
         '500':
           description: internal server error
@@ -194,7 +194,7 @@ paths:
             application/json:
               schema: 
                 type: object
-                items:
+                item:
                   $ref: '#/components/schemas/ErrorObject'
   /user/login:
     post:
@@ -233,7 +233,7 @@ paths:
             application/json:
               schema: 
                 type: object
-                items:
+                item:
                   $ref: '#/components/schemas/ErrorObject'
         '500':
           description: Internal Server Error
@@ -241,5 +241,5 @@ paths:
             application/json:
               schema: 
                 type: object
-                items:
+                item:
                   $ref: '#/components/schemas/ErrorObject'

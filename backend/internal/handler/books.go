@@ -1,13 +1,12 @@
 package handler
 
 import (
-	"bookshelf/converter"
 	"bookshelf/internal/database"
+	"bookshelf/internal/models"
 	"bookshelf/internal/response"
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -21,11 +20,16 @@ func (cfg *ApiConfig) GetBooks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	books, err := cfg.DB.GetBooksByUserID(r.Context(), userId)
+	booksDB, err := cfg.DB.GetBooksByUserID(r.Context(), userId)
 	if err != nil {
 		log.Println(err)
 		response.RespondWithError(w, http.StatusInternalServerError, "Can't get user's books")
 		return
+	}
+
+	books := make([]models.Book, len(booksDB))
+	for i, book := range booksDB {
+		books[i] = models.BookDatabaseToBasicJSONFormat(book)
 	}
 
 	response.RespondWithJSON(w, http.StatusOK, books)
@@ -40,22 +44,7 @@ func (cfg *ApiConfig) AddBooks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type BookJSONRequest struct {
-		ID          uuid.UUID `json:"id"`
-		UpdatedAt   time.Time `json:"updated_at"`
-		Title       string    `json:"title"`
-		Author      *string   `json:"author"`
-		Genre       *string   `json:"genre"`
-		PageMax     *int32    `json:"page_max"`
-		PageCurrent *int32    `json:"page_current"`
-		Description *string   `json:"description"`
-		Note        *string   `json:"note"`
-		Rating      *int32    `json:"rating"`
-		Progress    *string   `json:"progress"`
-		Isbn        *string   `json:"ISBN"`
-	}
-
-	books := []BookJSONRequest{}
+	books := []models.Book{}
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(&books)
 	if err != nil {
@@ -64,24 +53,25 @@ func (cfg *ApiConfig) AddBooks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, book := range books {
-		if book.ID == uuid.Nil || book.UpdatedAt.IsZero() {
+		bookDB := book.ToDatabaseFormat(userId)
+		if bookDB.ID == uuid.Nil || bookDB.UpdatedAt.IsZero() {
 			response.RespondWithError(w, http.StatusBadRequest, "Books must have uuid and updated_at")
 			return
 		}
 		_, err = cfg.DB.InsertBook(r.Context(), database.InsertBookParams{
-			ID:          book.ID,
+			ID:          bookDB.ID,
 			UserID:      userId,
-			UpdatedAt:   book.UpdatedAt,
-			Title:       book.Title,
-			Author:      converter.NewNullString(book.Author),
-			Genre:       converter.NewNullString(book.Genre),
-			PageMax:     converter.NewNullInt32(book.PageMax),
-			PageCurrent: converter.NewNullInt32(book.PageCurrent),
-			Description: converter.NewNullString(book.Description),
-			Note:        converter.NewNullString(book.Note),
-			Rating:      converter.NewNullInt32(book.Rating),
-			Progress:    converter.NewNullString(book.Progress),
-			Isbn:        converter.NewNullString(book.Isbn),
+			UpdatedAt:   bookDB.UpdatedAt,
+			Title:       bookDB.Title,
+			Author:      bookDB.Author,
+			Genre:       bookDB.Genre,
+			PageMax:     bookDB.PageMax,
+			PageCurrent: bookDB.PageCurrent,
+			Description: bookDB.Description,
+			Note:        bookDB.Note,
+			Rating:      bookDB.Rating,
+			Progress:    bookDB.Progress,
+			Isbn:        bookDB.Isbn,
 		})
 	}
 	if err != nil {
@@ -92,22 +82,8 @@ func (cfg *ApiConfig) AddBooks(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *ApiConfig) EditBooks(w http.ResponseWriter, r *http.Request) {
-	type BookJSONRequest struct {
-		ID          uuid.UUID `json:"id"`
-		UpdatedAt   time.Time `json:"updated_at"`
-		Title       string    `json:"title"`
-		Author      *string   `json:"author"`
-		Genre       *string   `json:"genre"`
-		PageMax     *int32    `json:"page_max"`
-		PageCurrent *int32    `json:"page_current"`
-		Description *string   `json:"description"`
-		Note        *string   `json:"note"`
-		Rating      *int32    `json:"rating"`
-		Progress    *string   `json:"progress"`
-		Isbn        *string   `json:"ISBN"`
-	}
 
-	books := []BookJSONRequest{}
+	books := []models.Book{}
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&books)
 	if err != nil {
@@ -116,23 +92,24 @@ func (cfg *ApiConfig) EditBooks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, book := range books {
-		if book.ID == uuid.Nil || book.UpdatedAt.IsZero() {
+		bookDB := book.ToDatabaseFormat(uuid.Nil) // we don't need userID
+		if bookDB.ID == uuid.Nil || bookDB.UpdatedAt.IsZero() {
 			response.RespondWithError(w, http.StatusBadRequest, "Books must have uuid and updated_at")
 			return
 		}
 		_, err = cfg.DB.EditBook(r.Context(), database.EditBookParams{
-			ID:          book.ID,
-			UpdatedAt:   book.UpdatedAt,
-			Title:       book.Title,
-			Author:      converter.NewNullString(book.Author),
-			Genre:       converter.NewNullString(book.Genre),
-			PageMax:     converter.NewNullInt32(book.PageMax),
-			PageCurrent: converter.NewNullInt32(book.PageCurrent),
-			Description: converter.NewNullString(book.Description),
-			Note:        converter.NewNullString(book.Note),
-			Rating:      converter.NewNullInt32(book.Rating),
-			Progress:    converter.NewNullString(book.Progress),
-			Isbn:        converter.NewNullString(book.Isbn),
+			ID:          bookDB.ID,
+			UpdatedAt:   bookDB.UpdatedAt,
+			Title:       bookDB.Title,
+			Author:      bookDB.Author,
+			Genre:       bookDB.Genre,
+			PageMax:     bookDB.PageMax,
+			PageCurrent: bookDB.PageCurrent,
+			Description: bookDB.Description,
+			Note:        bookDB.Note,
+			Rating:      bookDB.Rating,
+			Progress:    bookDB.Progress,
+			Isbn:        bookDB.Isbn,
 		})
 	}
 	if err != nil {

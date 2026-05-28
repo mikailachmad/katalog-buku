@@ -17,41 +17,53 @@ components:
       properties:
         error:
           type: string
+          examples: ["Error Message"]
     BookObject:
       type: object
       properties:
         id:
-          type: integer
+          type: string
+          examples: ["2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e"]
         updated_at:
           type: string
           format: date-time
           examples: ["2026-05-24T10:35:00Z"]
         title: 
           type: string
+          examples: ["Atomic Habits"]
         author:
           type: string
+          examples: ["James Clear"]
         genre:
           type: string
+          examples: ["Self-Improvement"]
         page_max:
           type: integer
+          examples: [320]
         page_current:
           type: integer
+          examples: [120]
         description:
           type: string
+          examples: ["Cara mudah dan terbukti untuk membangun kebiasaan baik dan menghilangkan kebiasaan buruk."]
         note:
           type: string
+          examples: ["Sangat direkomendasikan untuk seseorang yang ingin membangun habit positif"]
         rating:
           type: integer
+          examples: [4]
         progress:
           type: string
+          examples: ["sedang"]
         isbn:
           type: string
+          examples: [9780525538288]
     UserResponse:
       type: object
       properties:
         id:
-          type: integer
-          examples: [125]
+          type: string
+          examples: ["de230675-3d8e-42cc-a3c4-e742e98b5687"]
         username:
           type: string
           examples: ["budi_sanjaya"]
@@ -147,7 +159,8 @@ paths:
             schema:
               type: array
               items:
-                type: integer
+                type: string
+                examples: ["7954df09-7c41-4954-8a3b-2df613f11e1c"]
       responses:
         '200':
           description: Success
@@ -178,7 +191,7 @@ paths:
           required: true
           description: Unique ID of the book
           schema:
-            type: integer
+            type: string
       responses:
         '200':
           description: Success

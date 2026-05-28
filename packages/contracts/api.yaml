@@ -3,8 +3,8 @@ info:
   title: Catalog and Progress Tracker Book API
   version: 1.0.0
 servers:
-  - url: http://localhost:8080
-    description: Local Backend API
+  - url: http://103.23.198.215/api/v1
+    description: Backend API
 components:
   securitySchemes:
     BearerAuth:          
@@ -61,6 +61,12 @@ components:
           examples: ["2026-05-24T11:03:00Z"]
 
 paths:
+  /healthz:
+    get:
+      summary: Check if REST server is running correctly
+      responses:
+        '200':
+          description: REST API server is running.
   /books:
     get:
       summary: get user's books.

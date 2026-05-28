@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bookshelf/app/theme.dart';
 import 'package:bookshelf/views/auth/register_page.dart';
 import 'package:bookshelf/views/auth/widgets/auth_text_field.dart';
+import 'package:bookshelf/views/home/home_page.dart';
 
 /// Halaman Login (Selamat Datang).
 class LoginPage extends StatefulWidget {
@@ -29,10 +30,13 @@ class _LoginPageState extends State<LoginPage> {
   void _handleLogin() {
     if (_formKey.currentState?.validate() ?? false) {
       // TODO: Integrasi API login + JWT di tahap selanjutnya
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Login berhasil!'),
-          backgroundColor: AppColors.success,
+      // Navigasi ke HomePage setelah login berhasil
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => HomePage(
+            username: _usernameController.text.trim(),
+          ),
         ),
       );
     }

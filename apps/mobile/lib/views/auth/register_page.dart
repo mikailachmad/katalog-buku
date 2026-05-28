@@ -31,9 +31,15 @@ class _RegisterPageState extends State<RegisterPage> {
   void _handleRegister() {
     if (_formKey.currentState?.validate() ?? false) {
       // TODO: Integrasi API register di tahap selanjutnya
+      // Navigasi ke LoginPage setelah register berhasil
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Pendaftaran berhasil!'),
+          content: Text('Pendaftaran berhasil! Silakan login.'),
           backgroundColor: AppColors.success,
         ),
       );

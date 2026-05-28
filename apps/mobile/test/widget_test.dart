@@ -1,30 +1,71 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:pelatihan_7_mei/main.dart';
+import 'package:bookshelf/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('BookshelfApp - Smoke Tests', () {
+    testWidgets('App renders without error', (WidgetTester tester) async {
+      await tester.pumpWidget(const BookshelfApp());
+      // Verifikasi app berhasil di-render
+      expect(find.byType(MaterialApp), findsOneWidget);
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    testWidgets('Login page shows correct elements', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(const BookshelfApp());
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+      // Verifikasi elemen-elemen halaman Login
+      expect(find.text('Bookshelf'), findsOneWidget);
+      expect(find.text('Selamat datang!'), findsOneWidget);
+      expect(find.text('Masuk'), findsOneWidget);
+      expect(find.text('Belum punya akun? '), findsOneWidget);
+      expect(find.text('Daftar'), findsOneWidget);
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    testWidgets('Navigate from Login to Register', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(const BookshelfApp());
+
+      // Tap link "Daftar" untuk navigasi ke Register
+      await tester.tap(find.text('Daftar'));
+      await tester.pumpAndSettle();
+
+      // Verifikasi halaman Register muncul
+      expect(find.text('Buat Akun Baru'), findsOneWidget);
+      expect(find.text('Nama Lengkap'), findsOneWidget);
+    });
+
+    testWidgets('Navigate from Register back to Login', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(const BookshelfApp());
+
+      // Ke Register dulu
+      await tester.tap(find.text('Daftar'));
+      await tester.pumpAndSettle();
+
+      // Tap link "Masuk" untuk kembali ke Login
+      await tester.tap(find.text('Masuk'));
+      await tester.pumpAndSettle();
+
+      // Verifikasi kembali ke halaman Login
+      expect(find.text('Selamat datang!'), findsOneWidget);
+    });
+
+    testWidgets('Login form validation shows errors on empty fields', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(const BookshelfApp());
+
+      // Tap tombol Masuk tanpa mengisi form
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Masuk'));
+      await tester.pumpAndSettle();
+
+      // Verifikasi pesan error muncul
+      expect(find.text('Email atau username wajib diisi'), findsOneWidget);
+      expect(find.text('Password wajib diisi'), findsOneWidget);
+    });
   });
 }

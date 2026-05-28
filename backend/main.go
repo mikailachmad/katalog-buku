@@ -17,6 +17,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+var router *chi.Mux
+
 func main() {
 	fmt.Println("Hello World")
 
@@ -45,7 +47,7 @@ func main() {
 
 	fmt.Println("PORT: ", portString)
 
-	router := chi.NewRouter()
+	router = chi.NewRouter()
 
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
@@ -67,6 +69,8 @@ func main() {
 		secureRouter.Get("/books", apiConfig.GetBooks)
 		secureRouter.Post("/books", apiConfig.AddBooks)
 		secureRouter.Put("/books", apiConfig.EditBooks)
+		secureRouter.Post("/books/delete", apiConfig.DeleteBooks)
+		secureRouter.Delete("/book/{bookId}", apiConfig.DeleteBook)
 	})
 
 	router.Mount("/api/v1", v1Router)

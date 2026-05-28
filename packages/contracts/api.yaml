@@ -167,20 +167,18 @@ paths:
                 type: object
                 item:
                   $ref: '#/components/schemas/ErrorObject'
-  /book:
+  /book/{bookId}:
     delete:
       summary: Delete user's book.
       security:
         - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                id:
-                  type: integer
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          description: Unique ID of the book
+          schema:
+            type: integer
       responses:
         '200':
           description: Success

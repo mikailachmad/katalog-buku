@@ -10,7 +10,7 @@ SELECT * FROM books;
 SELECT * FROM books WHERE user_id = $1;
 
 -- name: DeleteBook :exec
-DELETE FROM books WHERE id = $1;
+DELETE FROM books WHERE id = $1 AND user_id = $2;
 
 -- name: EditBook :one
 UPDATE books

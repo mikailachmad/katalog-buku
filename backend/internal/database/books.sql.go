@@ -14,11 +14,16 @@ import (
 )
 
 const deleteBook = `-- name: DeleteBook :exec
-DELETE FROM books WHERE id = $1
+DELETE FROM books WHERE id = $1 AND user_id = $2
 `
 
-func (q *Queries) DeleteBook(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteBook, id)
+type DeleteBookParams struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) DeleteBook(ctx context.Context, arg DeleteBookParams) error {
+	_, err := q.db.ExecContext(ctx, deleteBook, arg.ID, arg.UserID)
 	return err
 }
 
@@ -94,6 +99,47 @@ SELECT id, user_id, updated_at, title, author, genre, page_max, page_current, de
 
 func (q *Queries) GetBooks(ctx context.Context) ([]Book, error) {
 	rows, err := q.db.QueryContext(ctx, getBooks)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Book
+	for rows.Next() {
+		var i Book
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.UpdatedAt,
+			&i.Title,
+			&i.Author,
+			&i.Genre,
+			&i.PageMax,
+			&i.PageCurrent,
+			&i.Description,
+			&i.Note,
+			&i.Rating,
+			&i.Progress,
+			&i.Isbn,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getBooksByUserID = `-- name: GetBooksByUserID :many
+SELECT id, user_id, updated_at, title, author, genre, page_max, page_current, description, note, rating, progress, isbn FROM books WHERE user_id = $1
+`
+
+func (q *Queries) GetBooksByUserID(ctx context.Context, userID uuid.UUID) ([]Book, error) {
+	rows, err := q.db.QueryContext(ctx, getBooksByUserID, userID)
 	if err != nil {
 		return nil, err
 	}

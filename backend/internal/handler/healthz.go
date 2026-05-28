@@ -6,5 +6,5 @@ import (
 )
 
 func Healthz(w http.ResponseWriter, r *http.Request) {
-	response.RespondWithJSON(w, 200, struct{}{})
+	response.RespondWithJSON(w, http.StatusOK, struct{}{})
 }

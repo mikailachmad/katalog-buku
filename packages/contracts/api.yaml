@@ -3,8 +3,8 @@ info:
   title: Catalog and Progress Tracker Book API
   version: 1.0.0
 servers:
-  - url: http://localhost:8080
-    description: Local Backend API
+  - url: http://103.23.198.215/api/v1
+    description: Backend API
 components:
   securitySchemes:
     BearerAuth:          
@@ -12,6 +12,11 @@ components:
       scheme: bearer
       bearerFormat: JWT 
   schemas:
+    ErrorObject:
+      type: object
+      properties:
+        error:
+          type: string
     BookObject:
       type: object
       properties:
@@ -56,6 +61,12 @@ components:
           examples: ["2026-05-24T11:03:00Z"]
 
 paths:
+  /healthz:
+    get:
+      summary: Check if REST server is running correctly
+      responses:
+        '200':
+          description: REST API server is running.
   /books:
     get:
       summary: get user's books.
@@ -70,6 +81,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/BookObject'
+        '401': 
+          description: Authorization failed
+          content:
+            application/json:
+              schema: 
+                type: object
+                item:
+                  $ref: '#/components/schemas/ErrorObject'
     post:
       summary: Store list of books of user to database
       security:
@@ -85,6 +104,14 @@ paths:
       responses:
         '200':
           description: "Success to save user's books"
+        '401': 
+          description: Authorization failed
+          content:
+            application/json:
+              schema: 
+                type: object
+                item:
+                  $ref: '#/components/schemas/ErrorObject'
     put:
       summary: Edit user's books
       security:
@@ -100,6 +127,14 @@ paths:
       responses:
         '200':
           description: "Success to edit user's books"
+        '401': 
+          description: Authorization failed
+          content:
+            application/json:
+              schema: 
+                type: object
+                item:
+                  $ref: '#/components/schemas/ErrorObject'
   /books/delete:
     post:
       summary: delete user's books
@@ -116,6 +151,54 @@ paths:
       responses:
         '200':
           description: Success
+        '400':
+          description: Invalid Book's ID
+          content:
+            application/json:
+              schema: 
+                type: object
+                item:
+                  $ref: '#/components/schemas/ErrorObject'
+        '401': 
+          description: Authorization failed
+          content:
+            application/json:
+              schema: 
+                type: object
+                item:
+                  $ref: '#/components/schemas/ErrorObject'
+  /book/{bookId}:
+    delete:
+      summary: Delete user's book.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          description: Unique ID of the book
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Invalid Book's ID
+          content:
+            application/json:
+              schema: 
+                type: object
+                item:
+                  $ref: '#/components/schemas/ErrorObject'
+        '401': 
+          description: Authorization failed
+          content:
+            application/json:
+              schema: 
+                type: object
+                item:
+                  $ref: '#/components/schemas/ErrorObject'
+
   /user/register:
     post:
       summary: Register new user
@@ -145,8 +228,20 @@ paths:
                 $ref: '#/components/schemas/UserResponse'
         '400':
           description: username not available
+          content:
+            application/json:
+              schema: 
+                type: object
+                item:
+                  $ref: '#/components/schemas/ErrorObject'
         '500':
           description: internal server error
+          content:
+            application/json:
+              schema: 
+                type: object
+                item:
+                  $ref: '#/components/schemas/ErrorObject'
   /user/login:
     post:
       summary: Login to get new JWT
@@ -180,5 +275,17 @@ paths:
                     examples: ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."]
         '401':
           description: Wrong username or password
+          content:
+            application/json:
+              schema: 
+                type: object
+                item:
+                  $ref: '#/components/schemas/ErrorObject'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema: 
+                type: object
+                item:
+                  $ref: '#/components/schemas/ErrorObject'

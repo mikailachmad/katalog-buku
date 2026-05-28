@@ -66,6 +66,7 @@ func main() {
 		secureRouter.Use(middleware.AuthMiddleware)
 		secureRouter.Get("/books", apiConfig.GetBooks)
 		secureRouter.Post("/books", apiConfig.AddBooks)
+		secureRouter.Put("/books", apiConfig.EditBooks)
 	})
 
 	router.Mount("/api/v1", v1Router)

@@ -18,7 +18,7 @@ Proyek ini merupakan aplikasi manajemen koleksi buku pribadi, pelacakan progres 
 | :--- | :--- | :--- |
 | **Mobile Front-end** | Flutter (Dart SDK) | Manajemen UI/UX dan State Management |
 | **Local Database** | IsarDB | Penyimpanan model Buku, Progres, dan Review secara lokal (*offline*) |
-| **Back-end API** | Python (Flask Framework) | Penyedia REST API untuk manajemen data terpusat |
+| **Back-end API** | Go (Chi) | Penyedia REST API untuk manajemen data terpusat |
 | **Server Database** | PostgreSQL | Penyimpanan data persisten di tingkat *cloud server* |
 | **HTTP Client** | Dio / Http (Package) | Media komunikasi data dari Flutter menuju Flask API |
 
@@ -31,9 +31,9 @@ Untuk menjaga modularitas, repositori ini menggunakan arsitektur monorepo yang m
 ```text
 Aplikasi Katalog Buku & Reading Tracker/
 ├── backend/                  # Workspace Marcel (Flask API)
-│   ├── database/             # Skema dan migrasi DDL PostgreSQL
-│   ├── app_flask.py          # Script utama server Flask
-│   └── requirements.txt      # Dependencies Python
+│   ├── internal/             # Kode berisi logika, autentikasi, database, dan lain-lain.
+│   ├── sql/                  # Skema dan migrasi DDL PostgreSQL
+│   └── main.go               # Script utama server Go
 │
 ├── lib/                      # Workspace Miko (Flutter Application)
 │   ├── models/               # Definisi skema objek IsarDB

@@ -151,6 +151,14 @@ paths:
       responses:
         '200':
           description: Success
+        '400':
+          description: Invalid Book's ID
+          content:
+            application/json:
+              schema: 
+                type: object
+                item:
+                  $ref: '#/components/schemas/ErrorObject'
         '401': 
           description: Authorization failed
           content:
@@ -159,6 +167,40 @@ paths:
                 type: object
                 item:
                   $ref: '#/components/schemas/ErrorObject'
+  /book:
+    delete:
+      summary: Delete user's book.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                id:
+                  type: integer
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Invalid Book's ID
+          content:
+            application/json:
+              schema: 
+                type: object
+                item:
+                  $ref: '#/components/schemas/ErrorObject'
+        '401': 
+          description: Authorization failed
+          content:
+            application/json:
+              schema: 
+                type: object
+                item:
+                  $ref: '#/components/schemas/ErrorObject'
+
   /user/register:
     post:
       summary: Register new user

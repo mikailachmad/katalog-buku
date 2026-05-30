@@ -10,14 +10,14 @@ class ApiService {
   final Dio _dio;
 
   ApiService()
-      : _dio = Dio(
-          BaseOptions(
-            baseUrl: _baseUrl,
-            connectTimeout: const Duration(seconds: 10),
-            receiveTimeout: const Duration(seconds: 10),
-            headers: {'Content-Type': 'application/json'},
-          ),
-        );
+    : _dio = Dio(
+        BaseOptions(
+          baseUrl: _baseUrl,
+          connectTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
 
   /// Login — POST /user/login
   /// Returns JWT token string.
@@ -33,12 +33,17 @@ class ApiService {
       );
 
       debugPrint('=== RESPONSE LOGIN ===');
-      debugPrint(response.data.toString()); // Ini cara melihat output API sukses
+      debugPrint(
+        response.data.toString(),
+      ); // Ini cara melihat output API sukses
       return response.data['token'] as String;
     } on DioException catch (e) {
       debugPrint('=== ERROR LOGIN ===');
+      debugPrint('Error Message: $e');
       debugPrint('Status Code: ${e.response?.statusCode}');
-      debugPrint('Response Data: ${e.response?.data}'); // Ini cara melihat pesan error dari API
+      debugPrint(
+        'Response Data: ${e.response?.data}',
+      ); // Ini cara melihat pesan error dari API
       rethrow;
     }
   }

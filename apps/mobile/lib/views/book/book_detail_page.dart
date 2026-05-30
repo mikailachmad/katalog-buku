@@ -37,16 +37,14 @@ class _BookDetailPageState extends State<BookDetailPage> {
     ProgressBottomSheet.show(
       context: context,
       currentStatus: _book.status,
-      onSave: (newStatus) {
+      currentPage: _book.pageCurrent,
+      maxPage: _book.pageMax,
+      onSave: (newStatus, newPageCurrent) {
         setState(() {
           _book.status = newStatus;
+          _book.pageCurrent = newPageCurrent;
           _book.updatedAt = DateTime.now();
           _hasChanges = true;
-
-          // Auto-set halaman jika selesai
-          if (newStatus == ReadingStatus.selesai) {
-            _book.pageCurrent = _book.pageMax;
-          }
         });
 
         // Sync perubahan ke server

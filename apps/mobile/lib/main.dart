@@ -3,6 +3,7 @@ import 'package:bookshelf/app/theme.dart';
 import 'package:bookshelf/views/auth/login_page.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const BookshelfApp());
 }
 

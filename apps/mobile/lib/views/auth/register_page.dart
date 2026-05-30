@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:bookshelf/app/theme.dart';
 import 'package:bookshelf/views/auth/login_page.dart';
 import 'package:bookshelf/views/auth/widgets/auth_text_field.dart';
+import 'package:bookshelf/services/api_service.dart';
 
 /// Halaman Buat Akun Baru (Register).
+/// Hanya username + password (tanpa email, sesuai backend schema).
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -13,24 +15,34 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  final _apiService = ApiService();
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  /// Handler tombol "Daftar" — saat ini hanya validasi form.
-  /// Logic API register akan ditambahkan di tahap selanjutnya.
-  void _handleRegister() {
-    if (_formKey.currentState?.validate() ?? false) {
-      // TODO: Integrasi API register di tahap selanjutnya
+  /// Handler tombol "Daftar" — panggil API register.
+  Future<void> _handleRegister() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _apiService.register(
+        _usernameController.text.trim(),
+        _passwordController.text,
+      );
+
+      if (!mounted) return;
+
       // Navigasi ke LoginPage setelah register berhasil
       Navigator.pushReplacement(
         context,
@@ -43,7 +55,25 @@ class _RegisterPageState extends State<RegisterPage> {
           backgroundColor: AppColors.success,
         ),
       );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mendaftar: ${_getErrorMessage(e)}'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  /// Ambil pesan error yang user-friendly.
+  String _getErrorMessage(dynamic error) {
+    if (error.toString().contains('username')) {
+      return 'Username sudah dipakai';
+    }
+    return 'Terjadi kesalahan, coba lagi';
   }
 
   /// Navigasi ke halaman Login
@@ -86,17 +116,24 @@ class _RegisterPageState extends State<RegisterPage> {
                 const SizedBox(height: 32),
 
                 // Form fields
-                _buildNameField(),
-                const SizedBox(height: 16),
-                _buildEmailField(),
+                _buildUsernameField(),
                 const SizedBox(height: 16),
                 _buildPasswordField(),
                 const SizedBox(height: 32),
 
                 // Tombol Daftar
                 ElevatedButton(
-                  onPressed: _handleRegister,
-                  child: const Text('Daftar'),
+                  onPressed: _isLoading ? null : _handleRegister,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Daftar'),
                 ),
                 const SizedBox(height: 24),
 
@@ -115,7 +152,6 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _buildHeader() {
     return Row(
       children: [
-        // Placeholder logo (ikon buku dengan background merah)
         Container(
           width: 44,
           height: 44,
@@ -140,38 +176,16 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  /// Field Nama Lengkap
-  Widget _buildNameField() {
+  /// Field Username
+  Widget _buildUsernameField() {
     return AuthTextField(
-      controller: _nameController,
-      hintText: 'Masukkan nama lengkap',
-      labelText: 'Nama Lengkap',
+      controller: _usernameController,
+      hintText: 'Masukkan username',
+      labelText: 'Username',
       prefixIcon: Icons.person_outline,
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
-          return 'Nama lengkap wajib diisi';
-        }
-        return null;
-      },
-    );
-  }
-
-  /// Field Email
-  Widget _buildEmailField() {
-    return AuthTextField(
-      controller: _emailController,
-      hintText: 'contoh@email.com',
-      labelText: 'Email',
-      prefixIcon: Icons.email_outlined,
-      keyboardType: TextInputType.emailAddress,
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return 'Email wajib diisi';
-        }
-        // Validasi format email sederhana
-        final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-        if (!emailRegex.hasMatch(value)) {
-          return 'Format email tidak valid';
+          return 'Username wajib diisi';
         }
         return null;
       },

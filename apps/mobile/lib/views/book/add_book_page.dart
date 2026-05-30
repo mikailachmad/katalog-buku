@@ -3,10 +3,21 @@ import 'package:bookshelf/app/theme.dart';
 import 'package:bookshelf/app/constants.dart';
 import 'package:bookshelf/models/book.dart';
 
-/// Halaman form untuk menambah buku baru secara manual.
+/// Halaman form untuk menambah buku baru secara manual, atau edit buku.
 /// Fields: Judul, Penulis, Genre (dropdown), Total Halaman, ISBN.
+
+/// Mode:
+/// - Tambah baru (default)
+/// - Tambah dengan ISBN pre-filled (dari scanner)
+/// - Edit buku existing (dari detail page)
 class AddBookPage extends StatefulWidget {
-  const AddBookPage({super.key});
+  /// ISBN yang sudah di-scan dari ScanBarcodePage. Opsional.
+  final String? prefilledIsbn;
+
+  /// Buku yang sedang di-edit. Null = mode tambah baru.
+  final Book? editBook;
+
+  const AddBookPage({super.key, this.prefilledIsbn, this.editBook});
 
   @override
   State<AddBookPage> createState() => _AddBookPageState();
@@ -22,6 +33,27 @@ class _AddBookPageState extends State<AddBookPage> {
   /// Genre yang dipilih dari dropdown.
   String? _selectedGenre;
 
+  /// Apakah sedang dalam mode edit.
+  bool get _isEditMode => widget.editBook != null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (_isEditMode) {
+      // Pre-fill dari buku yang di-edit
+      final book = widget.editBook!;
+      _titleController.text = book.title;
+      _authorController.text = book.author;
+      _totalPagesController.text = book.pageMax.toString();
+      _isbnController.text = book.isbn ?? '';
+      _selectedGenre = book.genre.isNotEmpty ? book.genre : null;
+    } else if (widget.prefilledIsbn != null) {
+      // Pre-fill ISBN dari scanner
+      _isbnController.text = widget.prefilledIsbn!;
+    }
+  }
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -36,21 +68,33 @@ class _AddBookPageState extends State<AddBookPage> {
   void _handleSave() {
     if (_formKey.currentState?.validate() ?? false) {
       final book = Book(
+        id: _isEditMode ? widget.editBook!.id : null,
         title: _titleController.text.trim(),
         author: _authorController.text.trim(),
         genre: _selectedGenre ?? 'Lainnya',
         pageMax: int.tryParse(_totalPagesController.text) ?? 0,
+        pageCurrent: _isEditMode ? widget.editBook!.pageCurrent : 0,
         isbn: _isbnController.text.trim().isEmpty
             ? null
             : _isbnController.text.trim(),
+        // Preserve existing data saat edit
+        note: _isEditMode ? widget.editBook!.note : null,
+        rating: _isEditMode ? widget.editBook!.rating : null,
+        status: _isEditMode
+            ? widget.editBook!.status
+            : ReadingStatus.belumDibaca,
       );
 
       // Kembalikan book ke halaman sebelumnya
       Navigator.pop(context, book);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Buku berhasil ditambahkan!'),
+        SnackBar(
+          content: Text(
+            _isEditMode
+                ? 'Buku berhasil diperbarui!'
+                : 'Buku berhasil ditambahkan!',
+          ),
           backgroundColor: AppColors.success,
         ),
       );
@@ -62,7 +106,7 @@ class _AddBookPageState extends State<AddBookPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Tambah Buku'),
+        title: Text(_isEditMode ? 'Edit Buku' : 'Tambah Buku'),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
@@ -150,9 +194,9 @@ class _AddBookPageState extends State<AddBookPage> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-        fontWeight: FontWeight.w600,
-      ),
+      style: Theme.of(
+        context,
+      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
     );
   }
 
@@ -178,10 +222,7 @@ class _AddBookPageState extends State<AddBookPage> {
       initialValue: _selectedGenre,
       decoration: const InputDecoration(hintText: 'Pilih genre buku'),
       items: AppConstants.genres.map((genre) {
-        return DropdownMenuItem(
-          value: genre,
-          child: Text(genre),
-        );
+        return DropdownMenuItem(value: genre, child: Text(genre));
       }).toList(),
       onChanged: (value) {
         setState(() => _selectedGenre = value);

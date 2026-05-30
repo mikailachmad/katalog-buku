@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bookshelf/app/theme.dart';
 import 'package:bookshelf/app/constants.dart';
 import 'package:bookshelf/models/book.dart';
+import 'package:bookshelf/services/api_service.dart';
 import 'package:bookshelf/views/home/widgets/book_search_bar.dart';
 import 'package:bookshelf/views/home/widgets/status_filter_chips.dart';
 import 'package:bookshelf/views/home/widgets/book_card.dart';
@@ -9,13 +10,15 @@ import 'package:bookshelf/views/book/book_detail_page.dart';
 import 'package:bookshelf/views/book/add_book_page.dart';
 import 'package:bookshelf/views/book/widgets/add_book_method_dialog.dart';
 import 'package:bookshelf/views/profile/profile_page.dart';
+import 'package:bookshelf/views/scanner/scan_barcode_page.dart';
 
 /// Halaman utama, Penyimpanan Koleksi Buku.
 /// Menampilkan daftar buku user dengan search, filter status, dan FAB tambah.
 class HomePage extends StatefulWidget {
   final String username;
+  final String token;
 
-  const HomePage({super.key, this.username = 'User'});
+  const HomePage({super.key, this.username = 'User', required this.token});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -28,8 +31,45 @@ class _HomePageState extends State<HomePage> {
   /// Query pencarian.
   String _searchQuery = '';
 
-  /// Daftar buku — saat ini dummy, nanti dari IsarDB.
-  final List<Book> _books = List.from(dummyBooks);
+  /// Daftar buku dari API.
+  List<Book> _books = [];
+
+  /// Loading state.
+  bool _isLoading = true;
+
+  /// Error message.
+  String? _error;
+
+  final _apiService = ApiService();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchBooks();
+  }
+
+  /// Fetch buku dari API backend.
+  Future<void> _fetchBooks() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final books = await _apiService.getBooks(widget.token);
+      if (!mounted) return;
+      setState(() {
+        _books = books;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Gagal memuat buku. Pastikan koneksi internet aktif.';
+        _isLoading = false;
+      });
+    }
+  }
 
   /// Daftar buku yang sudah difilter & dicari.
   List<Book> get _filteredBooks {
@@ -83,35 +123,57 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute(builder: (_) => const AddBookPage()),
     );
 
-    // Tambahkan buku baru ke list jika ada result
+    // Tambahkan buku baru ke list dan sync ke server
     if (result != null) {
-      setState(() {
-        _books.add(result);
-      });
+      setState(() => _books.add(result));
+
+      // Sync ke server
+      try {
+        await _apiService.addBooks(widget.token, [result]);
+      } catch (_) {
+        // Buku sudah ditambahkan lokal, sync nanti via Profile
+      }
     }
   }
 
   /// Navigasi ke halaman scan barcode ISBN.
-  void _navigateToScanISBN() {
-    // TODO: navigasi ke ScanBarcodePage (tahap selanjutnya)
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fitur scan ISBN — coming soon!')),
+  void _navigateToScanISBN() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ScanBarcodePage()),
     );
+    // Refresh setelah kembali dari scanner flow
+    _fetchBooks();
   }
 
   /// Navigasi ke halaman detail buku.
-  void _navigateToDetail(Book book) {
-    Navigator.push(
+  void _navigateToDetail(Book book) async {
+    final result = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => BookDetailPage(book: book)),
+      MaterialPageRoute(
+        builder: (_) => BookDetailPage(
+          book: book,
+          token: widget.token,
+        ),
+      ),
     );
+
+    // Refresh list jika ada perubahan dari detail
+    if (result == true) {
+      _fetchBooks();
+    }
   }
 
   /// Navigasi ke halaman profil & sinkronisasi.
   void _navigateToProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ProfilePage(username: widget.username)),
+      MaterialPageRoute(
+        builder: (_) => ProfilePage(
+          username: widget.username,
+          token: widget.token,
+        ),
+      ),
     );
   }
 
@@ -225,6 +287,32 @@ class _HomePageState extends State<HomePage> {
 
   /// List buku menggunakan ListView.builder untuk efisiensi.
   Widget _buildBookList() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.cloud_off_rounded, size: 64, color: AppColors.divider),
+            const SizedBox(height: 16),
+            Text(
+              _error!,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: _fetchBooks,
+              child: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
+      );
+    }
+
     final books = _filteredBooks;
 
     if (books.isEmpty) {
@@ -250,14 +338,17 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    return ListView.builder(
-      itemCount: books.length,
-      itemBuilder: (context, index) {
-        return BookCard(
-          book: books[index],
-          onTap: () => _navigateToDetail(books[index]),
-        );
-      },
+    return RefreshIndicator(
+      onRefresh: _fetchBooks,
+      child: ListView.builder(
+        itemCount: books.length,
+        itemBuilder: (context, index) {
+          return BookCard(
+            book: books[index],
+            onTap: () => _navigateToDetail(books[index]),
+          );
+        },
+      ),
     );
   }
 }

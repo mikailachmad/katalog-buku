@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:bookshelf/app/theme.dart';
 import 'package:bookshelf/app/constants.dart';
 import 'package:bookshelf/models/book.dart';
+import 'package:bookshelf/services/api_service.dart';
 import 'package:bookshelf/views/book/widgets/progress_bottom_sheet.dart';
+import 'package:bookshelf/views/book/rating_review_page.dart';
+import 'package:bookshelf/views/book/add_book_page.dart';
 
 /// Halaman detail buku, menampilkan info lengkap buku.
 /// Sesuai desain: cover, judul, penulis, rating, status, catatan,
-/// dan tombol "Edit Progress" yang membuka bottom sheet.
+/// tombol "Edit Progress", tombol "Beri Rating", dan edit metadata.
 class BookDetailPage extends StatefulWidget {
   final Book book;
+  final String token;
 
-  const BookDetailPage({super.key, required this.book});
+  const BookDetailPage({super.key, required this.book, required this.token});
 
   @override
   State<BookDetailPage> createState() => _BookDetailPageState();
@@ -19,6 +23,8 @@ class BookDetailPage extends StatefulWidget {
 class _BookDetailPageState extends State<BookDetailPage> {
   /// Buku yang ditampilkan (mutable karena progress bisa di-update).
   late Book _book;
+  bool _hasChanges = false;
+  final _apiService = ApiService();
 
   @override
   void initState() {
@@ -35,110 +41,192 @@ class _BookDetailPageState extends State<BookDetailPage> {
         setState(() {
           _book.status = newStatus;
           _book.updatedAt = DateTime.now();
+          _hasChanges = true;
 
           // Auto-set halaman jika selesai
           if (newStatus == ReadingStatus.selesai) {
             _book.pageCurrent = _book.pageMax;
           }
         });
+
+        // Sync perubahan ke server
+        _syncBook();
       },
     );
   }
 
+  /// Navigasi ke halaman Rating & Review.
+  void _navigateToRatingReview() async {
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RatingReviewPage(book: _book),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _book.rating = result['rating'] as int;
+        _book.note = result['note'] as String;
+        _book.updatedAt = DateTime.now();
+        _hasChanges = true;
+      });
+
+      // Sync perubahan ke server
+      _syncBook();
+    }
+  }
+
+  /// Navigasi ke halaman edit metadata buku.
+  void _navigateToEditBook() async {
+    final result = await Navigator.push<Book>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddBookPage(editBook: _book),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _book = result;
+        _hasChanges = true;
+      });
+
+      // Sync perubahan ke server
+      _syncBook();
+    }
+  }
+
+  /// Sync perubahan buku ke server.
+  Future<void> _syncBook() async {
+    try {
+      await _apiService.editBooks(widget.token, [_book]);
+    } catch (_) {
+      // Sync gagal, data lokal sudah ter-update
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Detail Buku'),
-        actions: [
-          // Tombol edit metadata buku
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            onPressed: () {
-              // TODO: navigasi ke edit book page
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Edit buku — coming soon!')),
-              );
-            },
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop && _hasChanges) {
+          // Notify parent bahwa ada perubahan
+          Navigator.of(context);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          title: const Text('Detail Buku'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context, _hasChanges),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Cover buku (besar, full width)
-            _buildCover(),
-            const SizedBox(height: 20),
+          actions: [
+            // Tombol edit metadata buku
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: _navigateToEditBook,
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Cover buku (besar, full width)
+              _buildCover(),
+              const SizedBox(height: 20),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Judul
-                  Text(
-                    _book.title,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 4),
-
-                  // Penulis
-                  Text(
-                    _book.author,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(fontSize: 16),
-                  ),
-                  const SizedBox(height: 4),
-
-                  // Genre
-                  Text(
-                    _book.genre,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w500,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Judul
+                    Text(
+                      _book.title,
+                      style: Theme.of(context).textTheme.headlineMedium,
                     ),
-                  ),
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 4),
 
-                  // Rating + progress
-                  _buildRatingAndProgress(),
-                  const SizedBox(height: 20),
+                    // Penulis
+                    Text(
+                      _book.author,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(fontSize: 16),
+                    ),
+                    const SizedBox(height: 4),
 
-                  // Tombol Edit Progress
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: _showProgressSheet,
-                      icon: const Icon(Icons.edit_note_rounded),
-                      label: const Text('Edit Progress'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        side: const BorderSide(color: AppColors.primary),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    // Genre
+                    Text(
+                      _book.genre,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Rating + progress
+                    _buildRatingAndProgress(),
+                    const SizedBox(height: 20),
+
+                    // Tombol Edit Progress
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _showProgressSheet,
+                        icon: const Icon(Icons.edit_note_rounded),
+                        label: const Text('Edit Progress'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: const BorderSide(color: AppColors.primary),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 12),
 
-                  // Catatan untuk buku ini
-                  _buildNoteSection(),
-                  const SizedBox(height: 24),
+                    // Tombol Beri Rating & Review
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _navigateToRatingReview,
+                        icon: const Icon(Icons.star_border_rounded),
+                        label: const Text('Beri Rating & Review'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.accent,
+                          side: const BorderSide(color: AppColors.accent),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
-                  // Info ISBN
-                  if (_book.isbn != null && _book.isbn!.isNotEmpty)
-                    _buildIsbnInfo(),
+                    // Catatan untuk buku ini
+                    _buildNoteSection(),
+                    const SizedBox(height: 24),
 
-                  const SizedBox(height: 32),
-                ],
+                    // Info ISBN
+                    if (_book.isbn != null && _book.isbn!.isNotEmpty)
+                      _buildIsbnInfo(),
+
+                    const SizedBox(height: 32),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

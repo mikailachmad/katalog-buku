@@ -4,3 +4,7 @@ bookshelf.exe
 **/generated_plugin_registrant.*
 **/generated_plugins.cmake
 **/GeneratedPluginRegistrant.*
+**/ios/**/GeneratedPluginRegistrant.*
+**/macos/**/GeneratedPluginRegistrant.*
+**/windows/flutter/generated_*.cmake
+**/linux/flutter/generated_*.cmake

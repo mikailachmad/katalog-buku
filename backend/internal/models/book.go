@@ -1,7 +1,7 @@
 package models
 
 import (
-	"bookshelf/converter"
+	"bookshelf/internal/converter"
 	"bookshelf/internal/database"
 	"time"
 

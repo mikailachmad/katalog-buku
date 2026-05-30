@@ -1,5 +1,6 @@
-.env
+﻿.env
 .vscode
+.idea/
 bookshelf.exe
 **/generated_plugin_registrant.*
 **/generated_plugins.cmake
@@ -8,3 +9,27 @@ bookshelf.exe
 **/macos/**/GeneratedPluginRegistrant.*
 **/windows/flutter/generated_*.cmake
 **/linux/flutter/generated_*.cmake
+
+# Documentation files (local only)
+*.pdf
+*.docx
+*.doc
+*.xlsx
+*.xls
+
+# Image files (local references)
+*.jpg
+*.jpeg
+*.png
+*.gif
+
+# Temporary files
+*.txt
+commit_msg.txt
+
+# macOS generated files
+.DS_Store
+
+# IDE local settings
+.idea/
+.vscode/
